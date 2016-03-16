@@ -1,8 +1,17 @@
 <template name="homeIndex">
     <h1>{{message}}</h1>
+    {{#if currentUser}}
     <div class="content">
         <div class="map-container">
             {{> googleMap name="exampleMap" options=exampleMapOptions}}
         </div>
     </div>
+
+    <button type="button" id="current" class="btn btn-danger">Show Current Location</button>
+    <button type="button" id="all" class="btn btn-danger">show all users</button>
+    <button type="button" id="track" class="btn btn-danger">Track me</button>
+    {{else}}
+        <h2>please login to the system</h2>
+    {{/if}}
+    <!--<button type="button" class="btn btn-default">Show Current Location</button>-->
 </template>
