@@ -7,3 +7,6 @@
 *.iml
 out
 gen
+
+# env setup file
+settings.json
