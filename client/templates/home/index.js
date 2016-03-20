@@ -37,9 +37,13 @@ if (Meteor.isClient) {
     });
 
     success = function(position){
-        Session.set('latitude',position.coords.latitude);
-        Session.set('longitude',position.coords.longitude);
-        Meteor.call('addPlace',position.coords.latitude,position.coords.longitude);
+
+        Meteor.setInterval(function() {
+            Session.set('latitude',position.coords.latitude);
+            Session.set('longitude',position.coords.longitude);
+            console.log("session set ");
+        }, 1000);
+        //Meteor.call('addPlace',position.coords.latitude,position.coords.longitude);
     }
 
 
@@ -98,17 +102,73 @@ if (Meteor.isClient) {
     //});
     //
     Template.homeIndex.events({
-        //'click #current' : function(event){
-        //    var text = event.target.text.value;
+        'click #track' : function(event){
+           console.log('track');
+            var start = {};
+            start.date = new Date();
+            start.lat = Session.get('latitude');
+            start.lng = Session.get('longitude');
+            History.start(start);
+            console.log('start session');
+            console.log(start);
+            Session.set('start',start);
+        },
+
+        'click #stop' : function(event){
+            console.log('stop');
+            var stop = {};
+            stop.date = new Date();
+            stop.lat = Session.get('latitude');
+            stop.lng = Session.get('longitude');
+            History.stop(stop);
+        },
+
+        'click #test' : function(event){
+            console.log('test');
+            //console.log(History.find().fetch());
+            //console.log(Session.get('start'));
+
+
+            if (GoogleMaps.loaded()) {
+                GoogleMaps.ready('exampleMap', function (map) {
+                    // Add a marker to the map once it's ready
+                    console.log('inside ready');
+
+                    var directionsService = new google.maps.DirectionsService();
+                    var directionsDisplay   = new google.maps.DirectionsRenderer();
+
+                    var start = new google.maps.LatLng(6.9270786, 79.861243);
+                    var mapOptions = {
+                        zoom:7,
+                        center: start
+                    }
+                    map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+                    directionsDisplay.setMap(map);
+
+                    var request = {
+                        origin:{lat: 6.9270786, lng: 79.861243},
+                        destination:{lat: 6.9270786, lng: 80.861243},
+                        travelMode: google.maps.TravelMode.DRIVING
+                    };
+                    directionsService.route(request, function(result, status) {
+                        if (status == google.maps.DirectionsStatus.OK) {
+                            directionsDisplay.setDirections(result);
+                        }
+                    });
+
+                });
+            }
+
+
+
+
+
+        },
         //
-        //    Meteor.call('addTodo',text);
-        //
-        //    event.target.text.value = '';
-        //    return false
-        //},
-        //
-        'click #all' : function(){
-            var myLatLng = {lat: -25.363, lng: 131.044};
+        'click #all' : function(event){
+            //console.log(event.target.text.value);
+            //var myLatLng = {lat: -25.363, lng: 131.044};
             console.log('before ready');
             if (GoogleMaps.loaded()) {
                 GoogleMaps.ready('exampleMap', function (map) {
