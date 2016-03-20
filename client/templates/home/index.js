@@ -69,12 +69,12 @@ if (Meteor.isClient) {
 
                 console.log('after');
 
-                var marker = new google.maps.Marker({
-                    position: map.options.center,
-                    map: map.instance,
-                    label : 'hello world',
-                    icon : 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                });
+                //var marker = new google.maps.Marker({
+                //    position: map.options.center,
+                //    map: map.instance,
+                //    label : 'hello world',
+                //    icon : 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                //});
 
                     //var start = { lat : 6.878028,  lng : 79.971199 };
                     //var end = { lat : 6.853486,  lng : 80.002098 };
@@ -112,22 +112,8 @@ if (Meteor.isClient) {
             console.log('start session');
             console.log(start);
             Session.set('start',start);
-        },
 
-        'click #stop' : function(event){
-            console.log('stop');
-            var stop = {};
-            stop.date = new Date();
-            stop.lat = Session.get('latitude');
-            stop.lng = Session.get('longitude');
-            History.stop(stop);
-        },
-
-        'click #test' : function(event){
-            console.log('test');
-            //console.log(History.find().fetch());
-            //console.log(Session.get('start'));
-
+            // update the directions on map
 
             if (GoogleMaps.loaded()) {
                 GoogleMaps.ready('exampleMap', function (map) {
@@ -142,27 +128,50 @@ if (Meteor.isClient) {
                         zoom:7,
                         center: start
                     }
-                    map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
-                    directionsDisplay.setMap(map);
+                    directionsDisplay.setMap(map.instance);
 
-                    var request = {
-                        origin:{lat: 6.9270786, lng: 79.861243},
-                        destination:{lat: 6.9270786, lng: 80.861243},
-                        travelMode: google.maps.TravelMode.DRIVING
-                    };
-                    directionsService.route(request, function(result, status) {
-                        if (status == google.maps.DirectionsStatus.OK) {
-                            directionsDisplay.setDirections(result);
-                        }
-                    });
+                    //Session.set('val',0.0001);
+                    var intervalId = Meteor.setInterval(function() {
+                        //Session.set('val',0.0001+Session.get('val'));
+                        var direction = History.getDirection();
+                        var request = {
+                            origin:{lat: direction.start.lat, lng: direction.start.lng},
+                            destination:{lat: Session.get('latitude'), lng: Session.get('longitude')},
+                            travelMode: google.maps.TravelMode.DRIVING
+                        };
+                        directionsService.route(request, function(result, status) {
+                            if (status == google.maps.DirectionsStatus.OK) {
+                                directionsDisplay.setDirections(result);
+                            }
+                        });
+                        console.log("routing set ");
+                    }, 1000);
+
+                    Session.set('intervalId',intervalId);
 
                 });
             }
 
 
 
+        },
 
+        'click #stop' : function(event){
+            console.log('stop');
+            var stop = {};
+            stop.date = new Date();
+            stop.lat = Session.get('latitude');
+            stop.lng = Session.get('longitude');
+            History.stop(stop);
+            Meteor.clearInterval(Session.get('intervalId'));
+
+        },
+
+        'click #test' : function(event){
+            console.log('test');
+            //console.log(History.find().fetch());
+            //console.log(Session.get('start'));
 
         },
         //
@@ -170,30 +179,43 @@ if (Meteor.isClient) {
             //console.log(event.target.text.value);
             //var myLatLng = {lat: -25.363, lng: 131.044};
             console.log('before ready');
-            if (GoogleMaps.loaded()) {
-                GoogleMaps.ready('exampleMap', function (map) {
-                    // Add a marker to the map once it's ready
-                    console.log('inside ready');
 
-                    _.each(Places.find().fetch(), function (place) {
-                        var myLatLng = {lat: place.lat, lng: place.long};
+            /////////////////////////////////////////////////
+            ///////////////////////////////////////////////
+            ///////////////////////////////////////////////
 
-                        var marker = new google.maps.Marker({
-                            position: myLatLng,
-                            map: map.instance
-                        });
-                    });
+            //if (GoogleMaps.loaded()) {
+            //    GoogleMaps.ready('exampleMap', function (map) {
+            //        // Add a marker to the map once it's ready
+            //        console.log('inside ready');
+            //
+            //        _.each(Places.find().fetch(), function (place) {
+            //            var myLatLng = {lat: place.lat, lng: place.long};
+            //
+            //            var marker = new google.maps.Marker({
+            //                position: myLatLng,
+            //                map: map.instance
+            //            });
+            //        });
+            //
+            //    });
+            //}
 
-                });
-            }
+            /////////////////////////////////////////////////
+            ///////////////////////////////////////////////
+            ///////////////////////////////////////////////
+
+
             console.log('after ready');
 
-            //
-            //var marker = new google.maps.Marker({
-            //    position: myLatLng,
-            //    map: map,
-            //    title: 'Hello World!'
-            //});
+            console.log(History.allDirections());
+
+        },
+        'click #t' : function(event){
+            console.log('t');
+            Meteor.clearInterval(Session.get('intervalId'));
+            console.log(Session.get('intervalId'));
+
         }
 
         //'click .delete-todo' : function(){
